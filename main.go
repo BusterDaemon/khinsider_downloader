@@ -89,6 +89,7 @@ func main() {
 }
 
 func download(link string, wg *sync.WaitGroup, ch chan struct{}) {
+	defer time.Sleep(2 * time.Second)
 	defer wg.Done()
 	i_s := strings.Split(link, "/")
 	_, err := os.Stat(path.Clean(outPutPath) + "/" + i_s[len(i_s)-1])
@@ -97,13 +98,13 @@ func download(link string, wg *sync.WaitGroup, ch chan struct{}) {
 		return
 	}
 
+	ch <- struct{}{}
+
 	resp, err := http.Get(link)
 	if err != nil {
 		log.Println(err)
 		return
 	}
-
-	ch <- struct{}{}
 
 	if resp.StatusCode != http.StatusOK {
 		fmt.Printf("%d %s", resp.StatusCode, http.StatusText(resp.StatusCode))
@@ -125,6 +126,5 @@ func download(link string, wg *sync.WaitGroup, ch chan struct{}) {
 		os.Remove(path.Clean(outPutPath) + "/" + i_s[len(i_s)-1])
 		return
 	}
-	time.Sleep(5 * time.Second)
 	<-ch
 }
