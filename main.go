@@ -31,6 +31,10 @@ func main() {
 	var songLinks []string
 	var downloadLinks []string
 
+	log.Println(dlink)
+	log.Println(downloadFlac)
+	log.Println(outPutPath)
+
 	c := colly.NewCollector(
 		colly.AllowedDomains("downloads.khinsider.com"),
 	)
@@ -89,13 +93,19 @@ func main() {
 }
 
 func download(link string, wg *sync.WaitGroup, ch chan struct{}) {
+	i_s := strings.Split(link, "/")
+	_, err := os.Stat(path.Clean(outPutPath) + "/" + i_s[len(i_s)-1])
+	if os.IsExist(err) {
+		log.Println("File exist. Skipping...")
+		wg.Done()
+	}
+
 	resp, err := http.Get(link)
 	if err != nil {
 		log.Println(err)
 		wg.Done()
 	}
 
-	defer time.Sleep(5 * time.Second)
 	defer wg.Done()
 	ch <- struct{}{}
 
@@ -107,8 +117,6 @@ func download(link string, wg *sync.WaitGroup, ch chan struct{}) {
 
 	log.Printf("Downloading: %s", link)
 
-	i_s := strings.Split(link, "/")
-
 	f, err := os.Create(path.Clean(outPutPath) + "/" + i_s[len(i_s)-1])
 	if err != nil {
 		log.Println(err)
@@ -118,7 +126,9 @@ func download(link string, wg *sync.WaitGroup, ch chan struct{}) {
 	_, err = io.Copy(f, resp.Body)
 	if err != nil {
 		log.Println(err)
+		os.Remove(path.Clean(outPutPath) + "/" + i_s[len(i_s)-1])
 		wg.Done()
 	}
+	time.Sleep(5 * time.Second)
 	<-ch
 }
