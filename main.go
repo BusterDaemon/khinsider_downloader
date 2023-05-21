@@ -7,6 +7,7 @@ import (
 	"log"
 	"net/http"
 	"os"
+	"path"
 	"regexp"
 	"strings"
 	"sync"
@@ -18,11 +19,13 @@ import (
 var dlink string
 var maxjobs int
 var downloadFlac bool
+var outPutPath string
 
 func main() {
 	flag.StringVar(&dlink, "link", "", "Paste the full link of OST from downloads.khinsider.com")
 	flag.IntVar(&maxjobs, "j", 1, "Maximum parallel downloads. Use with caution.")
 	flag.BoolVar(&downloadFlac, "flac", false, "Download FLAC version of soundtrack")
+	flag.StringVar(&outPutPath, "out", "./", "Download path")
 	flag.Parse()
 
 	var songLinks []string
@@ -106,7 +109,7 @@ func download(link string, wg *sync.WaitGroup, ch chan struct{}) {
 
 	i_s := strings.Split(link, "/")
 
-	f, err := os.Create("./" + i_s[len(i_s)-1])
+	f, err := os.Create(path.Clean(outPutPath) + "/" + i_s[len(i_s)-1])
 	if err != nil {
 		log.Println(err)
 		wg.Done()
