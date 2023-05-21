@@ -31,10 +31,6 @@ func main() {
 	var songLinks []string
 	var downloadLinks []string
 
-	log.Println(dlink)
-	log.Println(downloadFlac)
-	log.Println(outPutPath)
-
 	c := colly.NewCollector(
 		colly.AllowedDomains("downloads.khinsider.com"),
 	)
