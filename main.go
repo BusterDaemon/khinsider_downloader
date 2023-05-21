@@ -78,7 +78,7 @@ func main() {
 
 	var wg sync.WaitGroup
 
-	concJobs := make(chan struct{}, 1)
+	concJobs := make(chan struct{}, maxjobs)
 
 	for _, i := range downloadLinks {
 		wg.Add(1)
