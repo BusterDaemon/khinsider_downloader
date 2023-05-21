@@ -92,14 +92,14 @@ func download(link string, wg *sync.WaitGroup, ch chan struct{}) {
 	i_s := strings.Split(link, "/")
 	_, err := os.Stat(path.Clean(outPutPath) + "/" + i_s[len(i_s)-1])
 	if os.IsExist(err) {
-		log.Println("File exist. Skipping...")
-		wg.Done()
+		log.Println("File \"%s\" exist. Skipping...", path.Clean(outPutPath)+"/"+i_s[len(i_s)-1])
+		return
 	}
 
 	resp, err := http.Get(link)
 	if err != nil {
 		log.Println(err)
-		wg.Done()
+		return
 	}
 
 	defer wg.Done()
@@ -107,7 +107,7 @@ func download(link string, wg *sync.WaitGroup, ch chan struct{}) {
 
 	if resp.StatusCode != http.StatusOK {
 		fmt.Printf("%d %s", resp.StatusCode, http.StatusText(resp.StatusCode))
-		wg.Done()
+		return
 	}
 	defer resp.Body.Close()
 
@@ -116,14 +116,14 @@ func download(link string, wg *sync.WaitGroup, ch chan struct{}) {
 	f, err := os.Create(path.Clean(outPutPath) + "/" + i_s[len(i_s)-1])
 	if err != nil {
 		log.Println(err)
-		wg.Done()
+		return
 	}
 
 	_, err = io.Copy(f, resp.Body)
 	if err != nil {
 		log.Println(err)
 		os.Remove(path.Clean(outPutPath) + "/" + i_s[len(i_s)-1])
-		wg.Done()
+		return
 	}
 	time.Sleep(5 * time.Second)
 	<-ch
