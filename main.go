@@ -89,10 +89,11 @@ func main() {
 }
 
 func download(link string, wg *sync.WaitGroup, ch chan struct{}) {
+	defer wg.Done()
 	i_s := strings.Split(link, "/")
 	_, err := os.Stat(path.Clean(outPutPath) + "/" + i_s[len(i_s)-1])
-	if os.IsExist(err) {
-		log.Println("File \"%s\" exist. Skipping...", path.Clean(outPutPath)+"/"+i_s[len(i_s)-1])
+	if err == nil {
+		log.Printf("File \"%s\" exist. Skipping...", path.Clean(outPutPath)+"/"+i_s[len(i_s)-1])
 		return
 	}
 
@@ -102,7 +103,6 @@ func download(link string, wg *sync.WaitGroup, ch chan struct{}) {
 		return
 	}
 
-	defer wg.Done()
 	ch <- struct{}{}
 
 	if resp.StatusCode != http.StatusOK {
