@@ -6,6 +6,7 @@ import (
 	"io"
 	"log"
 	"net/http"
+	"net/url"
 	"os"
 	"path"
 	"regexp"
@@ -114,7 +115,9 @@ func download(link string, wg *sync.WaitGroup, ch chan struct{}) {
 
 	log.Printf("Downloading: %s", link)
 
-	f, err := os.Create(path.Clean(outPutPath) + "/" + i_s[len(i_s)-1])
+	f_name, _ := url.QueryUnescape(i_s[len(i_s)-1])
+
+	f, err := os.Create(path.Clean(outPutPath) + "/" + f_name)
 	if err != nil {
 		log.Println(err)
 		return
@@ -123,7 +126,7 @@ func download(link string, wg *sync.WaitGroup, ch chan struct{}) {
 	_, err = io.Copy(f, resp.Body)
 	if err != nil {
 		log.Println(err)
-		os.Remove(path.Clean(outPutPath) + "/" + i_s[len(i_s)-1])
+		os.Remove(path.Clean(outPutPath) + "/" + f_name)
 		return
 	}
 	<-ch
