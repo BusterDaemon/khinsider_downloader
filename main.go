@@ -122,6 +122,11 @@ func download(link string, wg *sync.WaitGroup, ch chan struct{}) {
 
 	f_name, _ := url.QueryUnescape(i_s[len(i_s)-1])
 
+	_, err = os.Stat(outPutPath)
+	if err != nil {
+		os.MkdirAll(outPutPath, 0755)
+	}
+
 	f, err := os.Create(path.Clean(outPutPath) + "/" + f_name)
 	if err != nil {
 		log.Println(err)
