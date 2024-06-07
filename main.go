@@ -1,6 +1,7 @@
 package main
 
 import (
+	"bufio"
 	"flag"
 	"fmt"
 	"io"
@@ -15,6 +16,7 @@ import (
 	"time"
 
 	"github.com/gocolly/colly"
+	"github.com/schollz/progressbar/v3"
 )
 
 var dlink string
@@ -92,6 +94,7 @@ func main() {
 func download(link string, wg *sync.WaitGroup, ch chan struct{}) {
 	defer time.Sleep(2 * time.Second)
 	defer wg.Done()
+
 	i_s := strings.Split(link, "/")
 	_, err := os.Stat(path.Clean(outPutPath) + "/" + i_s[len(i_s)-1])
 	if err == nil {
@@ -114,6 +117,8 @@ func download(link string, wg *sync.WaitGroup, ch chan struct{}) {
 	defer resp.Body.Close()
 
 	log.Printf("Downloading: %s", link)
+	progr := progressbar.DefaultBytes(resp.ContentLength)
+	buf := bufio.NewReader(resp.Body)
 
 	f_name, _ := url.QueryUnescape(i_s[len(i_s)-1])
 
@@ -123,7 +128,12 @@ func download(link string, wg *sync.WaitGroup, ch chan struct{}) {
 		return
 	}
 
-	_, err = io.Copy(f, resp.Body)
+	_, err = io.Copy(
+		io.MultiWriter(
+			f, progr,
+		),
+		buf,
+	)
 	if err != nil {
 		log.Println(err)
 		os.Remove(path.Clean(outPutPath) + "/" + f_name)
